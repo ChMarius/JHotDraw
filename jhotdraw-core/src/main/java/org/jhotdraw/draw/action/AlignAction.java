@@ -18,8 +18,6 @@ import org.jhotdraw.util.ResourceBundleUtil;
 /**
  * Aligns the selected figures.
  *
- * XXX - Fire edit events
- *
  * @author Werner Randelshofer
  * @version $Id$
  */
@@ -28,6 +26,15 @@ public abstract class AlignAction extends AbstractSelectedAction {
     private static final long serialVersionUID = 1L;
     protected ResourceBundleUtil labels
             = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+    
+    /**
+     * Functional interface for calculating the AffineTransform based on
+     * selection bounds and individual figure bounds.
+     */
+    @FunctionalInterface
+    protected interface TransformCalculator {
+        AffineTransform calculateTransform(Rectangle2D.Double selectionBounds, Rectangle2D.Double figureBounds);
+    }
 
     /**
      * Creates a new instance.
@@ -56,6 +63,29 @@ public abstract class AlignAction extends AbstractSelectedAction {
     }
 
     protected abstract void alignFigures(Collection<Figure> selectedFigures, Rectangle2D.Double selectionBounds);
+
+    /**
+     * Common implementation for aligning figures using a custom transform calculator.
+     * This method encapsulates the repeated logic to avoid duplication across subclasses.
+     * 
+     * @param selectedFigures the figures to align
+     * @param selectionBounds the bounds of the selection
+     * @param calculator the strategy for calculating the transformation for each figure
+     */
+    protected void alignFiguresWithCalculator(Collection<Figure> selectedFigures, 
+                                              Rectangle2D.Double selectionBounds,
+                                              TransformCalculator calculator) {
+        for (Figure f : selectedFigures) {
+            if (f.isTransformable()) {
+                f.willChange();
+                Rectangle2D.Double figureBounds = f.getBounds();
+                AffineTransform tx = calculator.calculateTransform(selectionBounds, figureBounds);
+                f.transform(tx);
+                f.changed();
+                fireUndoableEditHappened(new TransformEdit(f, tx));
+            }
+        }
+    }
 
     /**
      * Returns the bounds of the selected figures.
@@ -88,18 +118,12 @@ public abstract class AlignAction extends AbstractSelectedAction {
 
         @Override
         protected void alignFigures(Collection<Figure> selectedFigures, Rectangle2D.Double selectionBounds) {
-            double y = selectionBounds.y;
-            for (Figure f : getView().getSelectedFigures()) {
-                if (f.isTransformable()) {
-                    f.willChange();
-                    Rectangle2D.Double b = f.getBounds();
+            alignFiguresWithCalculator(selectedFigures, selectionBounds,
+                (bounds, figBounds) -> {
                     AffineTransform tx = new AffineTransform();
-                    tx.translate(0, y - b.y);
-                    f.transform(tx);
-                    f.changed();
-                    fireUndoableEditHappened(new TransformEdit(f, tx));
-                }
-            }
+                    tx.translate(0, bounds.y - figBounds.y);
+                    return tx;
+                });
         }
     }
 
@@ -119,18 +143,13 @@ public abstract class AlignAction extends AbstractSelectedAction {
 
         @Override
         protected void alignFigures(Collection<Figure> selectedFigures, Rectangle2D.Double selectionBounds) {
-            double x = selectionBounds.x + selectionBounds.width;
-            for (Figure f : getView().getSelectedFigures()) {
-                if (f.isTransformable()) {
-                    f.willChange();
-                    Rectangle2D.Double b = f.getBounds();
+            alignFiguresWithCalculator(selectedFigures, selectionBounds,
+                (bounds, figBounds) -> {
                     AffineTransform tx = new AffineTransform();
-                    tx.translate(x - b.x - b.width, 0);
-                    f.transform(tx);
-                    f.changed();
-                    fireUndoableEditHappened(new TransformEdit(f, tx));
-                }
-            }
+                    double x = bounds.x + bounds.width;
+                    tx.translate(x - figBounds.x - figBounds.width, 0);
+                    return tx;
+                });
         }
     }
 
@@ -150,18 +169,12 @@ public abstract class AlignAction extends AbstractSelectedAction {
 
         @Override
         protected void alignFigures(Collection<Figure> selectedFigures, Rectangle2D.Double selectionBounds) {
-            double x = selectionBounds.x;
-            for (Figure f : getView().getSelectedFigures()) {
-                if (f.isTransformable()) {
-                    f.willChange();
-                    Rectangle2D.Double b = f.getBounds();
+            alignFiguresWithCalculator(selectedFigures, selectionBounds,
+                (bounds, figBounds) -> {
                     AffineTransform tx = new AffineTransform();
-                    tx.translate(x - b.x, 0);
-                    f.transform(tx);
-                    f.changed();
-                    fireUndoableEditHappened(new TransformEdit(f, tx));
-                }
-            }
+                    tx.translate(bounds.x - figBounds.x, 0);
+                    return tx;
+                });
         }
     }
 
@@ -181,18 +194,13 @@ public abstract class AlignAction extends AbstractSelectedAction {
 
         @Override
         protected void alignFigures(Collection<Figure> selectedFigures, Rectangle2D.Double selectionBounds) {
-            double y = selectionBounds.y + selectionBounds.height;
-            for (Figure f : getView().getSelectedFigures()) {
-                if (f.isTransformable()) {
-                    f.willChange();
-                    Rectangle2D.Double b = f.getBounds();
+            alignFiguresWithCalculator(selectedFigures, selectionBounds,
+                (bounds, figBounds) -> {
                     AffineTransform tx = new AffineTransform();
-                    tx.translate(0, y - b.y - b.height);
-                    f.transform(tx);
-                    f.changed();
-                    fireUndoableEditHappened(new TransformEdit(f, tx));
-                }
-            }
+                    double y = bounds.y + bounds.height;
+                    tx.translate(0, y - figBounds.y - figBounds.height);
+                    return tx;
+                });
         }
     }
 
@@ -212,18 +220,13 @@ public abstract class AlignAction extends AbstractSelectedAction {
 
         @Override
         protected void alignFigures(Collection<Figure> selectedFigures, Rectangle2D.Double selectionBounds) {
-            double y = selectionBounds.y + selectionBounds.height / 2;
-            for (Figure f : getView().getSelectedFigures()) {
-                if (f.isTransformable()) {
-                    f.willChange();
-                    Rectangle2D.Double b = f.getBounds();
+            alignFiguresWithCalculator(selectedFigures, selectionBounds,
+                (bounds, figBounds) -> {
                     AffineTransform tx = new AffineTransform();
-                    tx.translate(0, y - b.y - b.height / 2);
-                    f.transform(tx);
-                    f.changed();
-                    fireUndoableEditHappened(new TransformEdit(f, tx));
-                }
-            }
+                    double y = bounds.y + bounds.height / 2;
+                    tx.translate(0, y - figBounds.y - figBounds.height / 2);
+                    return tx;
+                });
         }
     }
 
@@ -243,18 +246,13 @@ public abstract class AlignAction extends AbstractSelectedAction {
 
         @Override
         protected void alignFigures(Collection<Figure> selectedFigures, Rectangle2D.Double selectionBounds) {
-            double x = selectionBounds.x + selectionBounds.width / 2;
-            for (Figure f : getView().getSelectedFigures()) {
-                if (f.isTransformable()) {
-                    f.willChange();
-                    Rectangle2D.Double b = f.getBounds();
+            alignFiguresWithCalculator(selectedFigures, selectionBounds,
+                (bounds, figBounds) -> {
                     AffineTransform tx = new AffineTransform();
-                    tx.translate(x - b.x - b.width / 2, 0);
-                    f.transform(tx);
-                    f.changed();
-                    fireUndoableEditHappened(new TransformEdit(f, tx));
-                }
-            }
+                    double x = bounds.x + bounds.width / 2;
+                    tx.translate(x - figBounds.x - figBounds.width / 2, 0);
+                    return tx;
+                });
         }
     }
 }
