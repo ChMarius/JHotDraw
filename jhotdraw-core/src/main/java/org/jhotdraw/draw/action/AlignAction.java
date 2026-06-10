@@ -75,6 +75,9 @@ public abstract class AlignAction extends AbstractSelectedAction {
     protected void alignFiguresWithCalculator(Collection<Figure> selectedFigures, 
                                               Rectangle2D.Double selectionBounds,
                                               TransformCalculator calculator) {
+        assert selectedFigures != null : "selectedFigures must not be null";
+        assert selectionBounds != null : "selectionBounds must not be null";
+        assert calculator != null : "calculator must not be null";
         for (Figure f : selectedFigures) {
             if (f.isTransformable()) {
                 f.willChange();
