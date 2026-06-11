@@ -1,44 +1,51 @@
 package org.jhotdraw.draw;
-import java.awt.Dimension;
 
+import static org.jhotdraw.draw.AttributeKeys.CANVAS_HEIGHT;
+import static org.jhotdraw.draw.AttributeKeys.CANVAS_WIDTH;
 import static org.junit.Assert.assertEquals;
-import org.junit.Before;
+
 import org.junit.Test;
 
 public class DefaultDrawingViewTest {
 
-    private DefaultDrawingView view;
+    @Test
+    public void shouldChangeLandscapeCanvasToPortrait() {
+        DefaultDrawingView view = new DefaultDrawingView();
+        DefaultDrawing drawing = new DefaultDrawing();
 
-    @Before
-    public void setup() {
-        view = new DefaultDrawingView();
+        drawing.set(CANVAS_WIDTH, 800d);
+        drawing.set(CANVAS_HEIGHT, 600d);
+
+        view.setDrawing(drawing);
+
+        view.setPortraitCanvas();
+
+        assertEquals(600d, drawing.get(CANVAS_WIDTH), 0.01);
+        assertEquals(800d, drawing.get(CANVAS_HEIGHT), 0.01);
     }
 
     @Test
-    public void testGetPreferredSizeReturnsAssignedSize() {
-        Dimension expected = new Dimension(800, 600);
+    public void shouldKeepPortraitCanvasUnchanged() {
+        DefaultDrawingView view = new DefaultDrawingView();
+        DefaultDrawing drawing = new DefaultDrawing();
 
-        view.setPreferredSize(expected);
-        Dimension actual = view.getPreferredSize();
+        drawing.set(CANVAS_WIDTH, 600d);
+        drawing.set(CANVAS_HEIGHT, 800d);
 
-        assertEquals(expected.width, actual.width);
-        assertEquals(expected.height, actual.height);
+        view.setDrawing(drawing);
+
+        view.setPortraitCanvas();
+
+        assertEquals(600d, drawing.get(CANVAS_WIDTH), 0.01);
+        assertEquals(800d, drawing.get(CANVAS_HEIGHT), 0.01);
     }
 
     @Test
-    public void testCanvasViewBoundsWithZeroSize() {
-        view.setSize(0, 0);
+    public void shouldHandleNullDrawing() {
+        DefaultDrawingView view = new DefaultDrawingView();
 
-        java.awt.Rectangle bounds = view.getCanvasViewBounds();
+        view.setPortraitCanvas();
 
-        assertEquals(0, bounds.width);
-        assertEquals(0, bounds.height);
-    }
-    @Test
-    public void testSetBoundsWithMinimalSize() {
-        view.setBounds(0, 0, 1, 1);
-
-        assertEquals(1, view.getWidth());
-        assertEquals(1, view.getHeight());
+        assertEquals(null, view.getDrawing());
     }
 }
