@@ -29,6 +29,8 @@ import org.jhotdraw.draw.event.HandleEvent;
 import org.jhotdraw.draw.event.HandleListener;
 import org.jhotdraw.draw.handle.Handle;
 import org.jhotdraw.util.*;
+import static org.jhotdraw.draw.AttributeKeys.CANVAS_WIDTH;
+import static org.jhotdraw.draw.AttributeKeys.CANVAS_HEIGHT;
 
 /**
  * A default implementation of {@link DrawingView} suited for viewing drawings with a small number
@@ -1533,5 +1535,52 @@ public class DefaultDrawingView
     @Override
     public Handle getActiveHandle() {
         return activeHandle;
+    }
+
+    /**
+ * Changes the canvas to portrait orientation.
+ */
+    public void setPortraitCanvas() {
+        updateCanvasOrientation(true);
+    }
+
+    /**
+     * Changes the canvas to landscape orientation.
+     */
+    public void setLandscapeCanvas() {
+        updateCanvasOrientation(false);
+    }
+
+    /**
+     * Updates the canvas orientation.
+     */
+    private void updateCanvasOrientation(boolean portrait) {
+        if (drawing == null) {
+            return;
+        }
+
+        Double width = drawing.get(CANVAS_WIDTH);
+        Double height = drawing.get(CANVAS_HEIGHT);
+
+        if (width == null || height == null) {
+            return;
+        }
+
+        if ((portrait && width > height)
+                || (!portrait && height > width)) {
+            swapCanvasDimensions(width, height);
+        }
+
+        invalidateDimension();
+        validateViewTranslation();
+        repaint();
+    }
+
+    /**
+     * Swaps the canvas width and height.
+     */
+    private void swapCanvasDimensions(Double width, Double height) {
+        drawing.set(CANVAS_WIDTH, height);
+        drawing.set(CANVAS_HEIGHT, width);
     }
 }
