@@ -9,36 +9,23 @@ As a user, I want to change the canvas from landscape to portrait so that I can 
 #### Scenario 1: Change canvas to portrait
 
 **Given**
-- A drawing view with landscape orientation
+- A drawing view with landscape orientation.
 
 **When**
-- The user selects portrait format
+- The user selects portrait orientation.
 
 **Then**
-- The canvas height becomes greater than its width
+- The canvas width and height are swapped, and the canvas is displayed in portrait format.
 
 ---
 
 #### Scenario 2: Keep portrait when already portrait
 
 **Given**
-- A drawing view already in portrait orientation
+- A drawing view already in portrait orientation.
 
 **When**
-- The user selects portrait format
+- The user selects portrait orientation.
 
 **Then**
-- The canvas size remains unchanged
-
----
-
-#### Scenario 3: Switch back to landscape
-
-**Given**
-- A drawing view in portrait orientation
-
-**When**
-- The user selects landscape format
-
-**Then**
-- The canvas width becomes greater than its height
+- The canvas dimensions remain unchanged.
