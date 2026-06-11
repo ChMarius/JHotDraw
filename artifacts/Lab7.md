@@ -1,4 +1,4 @@
-# Unit Testing – Align Feature
+# Unit Tests – Align Feature
 
 **File:** `jhotdraw-core/src/test/java/org/jhotdraw/draw/action/AlignActionTest.java`  
 **Framework:** JUnit 4  
@@ -8,7 +8,7 @@
 
 ## Overview
 
-A JUnit 4 test class was created for `AlignAction` to verify the core business logic introduced during the refactoring of the Align feature. The tests focus on two methods: `getSelectionBounds()` and `alignFiguresWithCalculator()`. Since `AlignAction` depends on `DrawingView` and a live `Drawing`, the test class uses a Java `Proxy` to stub `DrawingView` and a `StubFigure` subclass of `AbstractFigure` to isolate the logic under test from the rest of the framework.
+A JUnit 4 test class was created for `AlignAction` to verify the core business logic of the Align feature. The tests focus on two methods: `getSelectionBounds()` and `alignFiguresWithCalculator()`. Since `AlignAction` depends on `DrawingView` and a live `Drawing`, the test class uses a Java `Proxy` to stub `DrawingView` and a `StubFigure` subclass of `AbstractFigure` to isolate the logic under test from the rest of the framework.
 
 ---
 
@@ -16,7 +16,7 @@ A JUnit 4 test class was created for `AlignAction` to verify the core business l
 
 **`createView(Set<Figure>)`** — builds a lightweight `DrawingView` proxy that returns a fixed set of selected figures, a selection count, and `true` for `isEnabled()`. This avoids needing a real Swing drawing canvas in tests.
 
-**`TestAlignAction`** — a concrete subclass of `AlignAction` used only in tests. It overrides `alignFigures()` as a no-op (so abstract method tests don't interfere), suppresses `fireUndoableEditHappened()` (no `Drawing` is attached), and exposes a `setView()` setter so each test can inject its own view proxy.
+**`TestAlignAction`** — a concrete subclass of `AlignAction` used only in tests. It overrides `alignFigures()` as a no-op, suppresses `fireUndoableEditHappened()` since no `Drawing` is attached, and exposes a `setView()` setter so each test can inject its own view proxy.
 
 **`StubFigure`** — a minimal `AbstractFigure` implementation that stores a mutable bounding rectangle and counts how many times `transform()` has been called. This lets tests assert both that the right figures were moved and that non-transformable figures were correctly skipped.
 
@@ -34,14 +34,8 @@ Passes an empty selection set and asserts that `getSelectionBounds()` returns `n
 
 ### `alignFiguresWithCalculator()` — Best Case
 **`testAlignFiguresWithCalculatorTransformsTransformableFigure()`**  
-Passes a single transformable `StubFigure` and a calculator lambda that translates the figure to `y=0` (aligning to the top of the selection bounds). After the call, the test asserts that `transform()` was called exactly once and that the figure's new `y` coordinate is `0.0`. This verifies the core transform path that all six alignment directions rely on.
+Passes a single transformable `StubFigure` and a calculator lambda that translates the figure to `y=0`. After the call, the test asserts that `transform()` was called exactly once and that the figure's new `y` coordinate is `0.0`. This verifies the core transform path that all six alignment directions rely on.
 
 ### `alignFiguresWithCalculator()` — Boundary Case
 **`testAlignFiguresWithCalculatorSkipsNonTransformableFigure()`**  
-Marks the stub figure as non-transformable (`setTransformable(false)`) and asserts that the calculator lambda is never invoked and `transform()` is never called. This ensures the method respects the figure's transformable flag and does not attempt to move locked or protected figures.
-
----
-
-## Build Configuration
-
-`junit:junit:4.13.2` was added as a test-scoped dependency in `jhotdraw-core/pom.xml`. The Maven Surefire plugin was configured with the `-ea` flag to enable Java assertions during test execution, so any `assert` statements inside `StubFigure.transform()` are active when the suite runs under Maven.
+Marks the stub figure as non-transformable (`setTransformable(false)`) and asserts that the calculator lambda is never invoked and `transform()` is never called. This ensures the method does not attempt to move locked or protected figures.
