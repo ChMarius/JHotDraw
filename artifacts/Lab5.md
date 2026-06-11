@@ -4,13 +4,13 @@
 
 Clean Architecture organizes software into layers and isolates business logic from UI and infrastructure. Changes in one layer have minimal impact on others.
 
-In the JHotDraw case study, the feature modifies canvas orientation, which is a presentation concern. Clean Architecture helps place this functionality in the correct layer.
+The portrait orientation feature was implemented in the presentation layer by modifying DefaultDrawingView. The implementation reuses the existing CANVAS_WIDTH and CANVAS_HEIGHT attributes, avoiding changes to the domain model.
 
 ### SOLID Principles
 
 **Single Responsibility Principle**
 
-Orientation logic is kept inside `DefaultDrawingView`.
+The implementation separates responsibilities through `setPortraitCanvas`, `setLandscapeCanvas`, `updateCanvasOrientation`, and `swapCanvasDimensions`.
 
 **Open Closed Principle**
 
